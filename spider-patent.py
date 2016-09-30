@@ -6,9 +6,10 @@ import re
 import thread
 import time,string
 import sys
+import os
 
 
-#----------- 加载处理糗事百科 -----------
+
 class Spider_Model:
 
     def __init__(self,content):
@@ -55,21 +56,18 @@ class Spider_Model:
         for items in nowPage:
            if items[1][6] == '1':
             self.SavePage(items[0])
-            print u'发明专利'  , items[1]
-           else:
-            print u'其他专利'  , items[1]
+            #print u'发明专利'  , items[1]
+          # else:
+            #print u'其他专利'  , items[1]
 
     def SavePage(self,nowPage):
        list=self.Getdownload(nowPage)
        for item in list:
-        print item
         reObj1 = re.compile('/(CN(\.|\w)*pdf)')
         result=reObj1.findall(item)
         if len(result)!=0:
-         print "retult="
-         print result
          sName = result[0][0]
-         print sName
+
 
          if sName[6]!='1':
             print "unvaliable"
@@ -78,11 +76,12 @@ class Spider_Model:
          try:
             req=urllib2.Request(url)
             myResponse = urllib2.urlopen(req)
-            print url
+
             if int(myResponse.info().getheader('Content-Length'))< 10240:
                 print myResponse.info().getheader('Content-Length')+"  too small"
                 return
-            urllib.urlretrieve(url, sName)
+            print  os.getcwd()+'/'+content.decode('utf-8')+'_result/'+sName
+            urllib.urlretrieve(url, os.getcwd()+'/'+content.decode('utf-8')+'_result/'+sName)
             self.count+=1
          except urllib2.URLError, e:
                  print e.reason
@@ -105,7 +104,9 @@ class Spider_Model:
         #re.S是任意匹配模式，也就是.可以匹配换行符
        # myItems = re.findall('(/Home/DownloadChoice/\d+)',unicodePage,re.S)
         myItems = re.findall('fulltext(.*\.pdf)',unicodePage,re.S)
-        #print myItems
+        print 'items'
+        print list
+        print myItems
         #myItems = re.findall('<div.*?class="content">(.*?)</div>',unicodePage,re.S)
         return myItems
 
@@ -117,7 +118,7 @@ class Spider_Model:
         myResponse = urllib2.urlopen(req)
         myPage = myResponse.read()
         unicodePage = myPage.decode("utf-8")
-        print unicodePage
+
         myItems = re.findall('(\d+)</a>&nbsp;\s+</li>',unicodePage,re.S)
         return myItems[0]
 
@@ -139,10 +140,14 @@ class Spider_Model:
         print u'正在加载中请稍候......'
         thread.start_new_thread(self.LoadPage,())
         thread.start_new_thread(self.down,())
+        '''
+         thread.start_new_thread(self.down,())
         thread.start_new_thread(self.down,())
         thread.start_new_thread(self.down,())
         thread.start_new_thread(self.down,())
-        thread.start_new_thread(self.down,())
+
+        '''
+
 
 
 
@@ -154,12 +159,12 @@ def getResourceLength(url):
        print  'size'+response.info().getheader('Content-Length')
        return
 
-print 'press enter to start：'
-raw_input(' ')
+
 while(1):
- content=raw_input("input what to search")
- print content
- myModel = Spider_Model(content)
- print myModel.Getpagenumber()
- myModel.Start()
+     content=raw_input("input what to search")
+     print './'+content+'_result/'
+     if not os.path.exists('./'+content+'_result'):
+         os.mkdir('./'+content+'_result')
+     myModel = Spider_Model(content)
+     myModel.Start()
 sys.exit(0)
